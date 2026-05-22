@@ -1,0 +1,232 @@
+{
+  "info": {
+    "name": "Daily Expenses API",
+    "description": "API collection for Daily Expenses app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Get All Expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses?userId=default-user",
+              "host": ["{{base_url}}"],
+              "path": ["expenses"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "default-user"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Expense by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/{{expenseId}}",
+              "host": ["{{base_url}}"],
+              "path": ["expenses", "{{expenseId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"default-user\",\n  \"amount\": 50000,\n  \"category\": \"food\",\n  \"description\": \"Cơm trưa\",\n  \"date\": \"2026-05-21\",\n  \"tags\": [\"ăn trưa\"],\n  \"notes\": \"Ở quán cơm gần công ty\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses",
+              "host": ["{{base_url}}"],
+              "path": ["expenses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 60000,\n  \"category\": \"food\",\n  \"description\": \"Cơm trưa + nước\",\n  \"date\": \"2026-05-21\",\n  \"tags\": [\"ăn trưa\"],\n  \"notes\": \"Ở quán cơm gần công ty\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses/{{expenseId}}",
+              "host": ["{{base_url}}"],
+              "path": ["expenses", "{{expenseId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Expense",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/{{expenseId}}",
+              "host": ["{{base_url}}"],
+              "path": ["expenses", "{{expenseId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Advanced Queries",
+      "item": [
+        {
+          "name": "Get by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/range/search?userId=default-user&startDate=2026-05-01&endDate=2026-05-31",
+              "host": ["{{base_url}}"],
+              "path": ["expenses", "range", "search"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "default-user"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-05-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-05-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get by Month",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/month/search?userId=default-user&month=5&year=2026",
+              "host": ["{{base_url}}"],
+              "path": ["expenses", "month", "search"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "default-user"
+                },
+                {
+                  "key": "month",
+                  "value": "5"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/stats/analytics?userId=default-user&month=5&year=2026",
+              "host": ["{{base_url}}"],
+              "path": ["expenses", "stats", "analytics"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "default-user"
+                },
+                {
+                  "key": "month",
+                  "value": "5"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cleanup (Testing)",
+      "item": [
+        {
+          "name": "Delete All Expenses",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses",
+              "host": ["{{base_url}}"],
+              "path": ["expenses"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "expenseId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

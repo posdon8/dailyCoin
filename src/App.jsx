@@ -5,7 +5,8 @@ import Notification from './components/common/Notification';
 import HomePage from './pages/HomePage';
 import ExpensePage from './pages/ExpensePage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import { useExpenses } from './hooks/useExpenses';
+import { useExpenses } from './hooks/useExpensesAPI';
+//import { useBudget } from './hooks/useBudget';
 import { MESSAGES } from './utils/constants';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import './styles/globals.css';
@@ -16,33 +17,65 @@ const AppContent = () => {
   const {
     expenses,
     loading,
+    error,
     addExpense,
     updateExpense,
     deleteExpense,
   } = useExpenses();
 
-  const handleAddExpense = (data) => {
-    addExpense(data);
-    setNotification({
-      message: MESSAGES.addSuccess,
-      type: 'success',
-    });
+  // Hiển thị error nếu có
+  useEffect(() => {
+    if (error) {
+      setNotification({
+        message: `❌ Lỗi: ${error}`,
+        type: 'danger',
+      });
+    }
+  }, [error]);
+
+  const handleAddExpense = async (data) => {
+    try {
+      await addExpense(data);
+      setNotification({
+        message: MESSAGES.addSuccess,
+        type: 'success',
+      });
+    } catch (err) {
+      setNotification({
+        message: `❌ Lỗi: ${err.message}`,
+        type: 'danger',
+      });
+    }
   };
 
-  const handleUpdateExpense = (id, data) => {
-    updateExpense(id, data);
-    setNotification({
-      message: MESSAGES.editSuccess,
-      type: 'success',
-    });
+  const handleUpdateExpense = async (id, data) => {
+    try {
+      await updateExpense(id, data);
+      setNotification({
+        message: MESSAGES.editSuccess,
+        type: 'success',
+      });
+    } catch (err) {
+      setNotification({
+        message: `❌ Lỗi: ${err.message}`,
+        type: 'danger',
+      });
+    }
   };
 
-  const handleDeleteExpense = (id) => {
-    deleteExpense(id);
-    setNotification({
-      message: MESSAGES.deleteSuccess,
-      type: 'success',
-    });
+  const handleDeleteExpense = async (id) => {
+    try {
+      await deleteExpense(id);
+      setNotification({
+        message: MESSAGES.deleteSuccess,
+        type: 'success',
+      });
+    } catch (err) {
+      setNotification({
+        message: `❌ Lỗi: ${err.message}`,
+        type: 'danger',
+      });
+    }
   };
 
   const navigateTo = (page) => {
