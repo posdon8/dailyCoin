@@ -211,3 +211,193 @@ export const importData = async (data) => {
 
   return results;
 };
+
+// ================================
+// BUDGET APIs
+// ================================
+
+/**
+ * Lấy tất cả budget của tháng
+ */
+export const fetchBudgets = async (month, year) => {
+  const response = await apiCall(`/budgets?month=${month}&year=${year}`);
+  return response;
+};
+
+/**
+ * Tạo hoặc cập nhật budget
+ */
+export const saveBudgetAPI = async (category, limit, month, year, notes) => {
+  const response = await apiCall('/budgets', {
+    method: 'POST',
+    body: JSON.stringify({
+      category,
+      limit,
+      month,
+      year,
+      notes: notes || '',
+    }),
+  });
+  return response.data;
+};
+
+/**
+ * Xóa budget
+ */
+export const deleteBudgetAPI = async (budgetId) => {
+  await apiCall(`/budgets/${budgetId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Lấy tổng quan budget + cảnh báo
+ */
+export const fetchBudgetSummary = async (month, year) => {
+  const response = await apiCall(`/budgets/summary?month=${month}&year=${year}`);
+  return response;
+};
+
+// ================================
+// WALLET APIs
+// ================================
+
+/**
+ * Lấy tất cả ví
+ */
+export const fetchWallets = async () => {
+  const response = await apiCall('/wallets');
+  return response.data || [];
+};
+
+/**
+ * Tạo ví mới
+ */
+export const createWalletAPI = async (wallet) => {
+  const response = await apiCall('/wallets', {
+    method: 'POST',
+    body: JSON.stringify(wallet),
+  });
+  return response.data;
+};
+
+/**
+ * Cập nhật ví
+ */
+export const updateWalletAPI = async (walletId, updates) => {
+  const response = await apiCall(`/wallets/${walletId}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+  return response.data;
+};
+
+/**
+ * Xóa ví
+ */
+export const deleteWalletAPI = async (walletId) => {
+  await apiCall(`/wallets/${walletId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Lấy tổng hợp tất cả ví
+ */
+export const fetchWalletsSummary = async () => {
+  const response = await apiCall('/wallets/summary/total');
+  return response.data;
+};
+
+/**
+ * Cập nhật số dư ví
+ */
+export const updateWalletBalance = async (walletId, balance, operation, amount) => {
+  const response = await apiCall(`/wallets/${walletId}/balance`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      balance,
+      operation,
+      amount,
+    }),
+  });
+  return response.data;
+};
+
+// ================================
+// ATTACHMENT APIs
+// ================================
+
+/**
+ * Tải ảnh lên
+ */
+export const uploadAttachmentAPI = async (expenseId, file, description = '') => {
+  // Chuyển file sang base64
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const response = await apiCall('/attachments', {
+          method: 'POST',
+          body: JSON.stringify({
+            expenseId,
+            fileName: file.name,
+            mimeType: file.type,
+            fileSize: file.size,
+            fileData: reader.result, // Base64
+            description,
+          }),
+        });
+        resolve(response.data);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Lấy attachment của chi tiêu
+ */
+export const fetchAttachmentsByExpense = async (expenseId) => {
+  const response = await apiCall(`/attachments/expense/${expenseId}`);
+  return response.data || [];
+};
+
+/**
+ * Lấy chi tiết attachment
+ */
+export const fetchAttachmentById = async (attachmentId) => {
+  const response = await apiCall(`/attachments/${attachmentId}`);
+  return response.data;
+};
+
+/**
+ * Xóa attachment
+ */
+export const deleteAttachmentAPI = async (attachmentId) => {
+  await apiCall(`/attachments/${attachmentId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Cập nhật attachment
+ */
+export const updateAttachmentAPI = async (attachmentId, description) => {
+  const response = await apiCall(`/attachments/${attachmentId}/update`, {
+    method: 'POST',
+    body: JSON.stringify({ description }),
+  });
+  return response.data;
+};
+
+/**
+ * Lấy tất cả attachment
+ */
+export const fetchAttachments = async () => {
+  const response = await apiCall('/attachments');
+  return response.data || [];
+};
