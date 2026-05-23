@@ -49,7 +49,7 @@ const TrendChart = ({ data = [], type = 'line' }) => {
   return (
     <div className="card">
       <h2 className="card-header">📈 Xu hướng chi tiêu</h2>
-      <div style={{ width: '100%', height: 300 }}>
+      <div style={{ width: '100%', height: 300, minWidth: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           {type === 'line' ? (
             <LineChart data={data}>

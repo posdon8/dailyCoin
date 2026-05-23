@@ -1,18 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { EXPENSE_CATEGORIES, MESSAGES } from '../../utils/constants';
 import { validateExpense, trimStringValues } from '../../utils/validation';
 import { getTodayDate } from '../../utils/format';
+import { useWallets } from '../../hooks/useWallets';
+import { useAttachments } from '../../hooks/useAttachments';
+import ImageUpload from '../attachment/ImageUpload';
+import ImageGallery from '../attachment/ImageGallery';
 
-const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false }) => {
+const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false, onNotification }) => {
+  const { wallets } = useWallets();
+  const { attachments, loading: attachmentLoading, uploadAttachment, deleteAttachment, loadAttachments } = useAttachments();
+
   const [formData, setFormData] = useState(
     initialData || {
       amount: '',
       category: 'food',
       description: '',
       date: getTodayDate(),
+      walletId: '',
+      notes: '',
+      tags: [],
     }
   );
   const [errors, setErrors] = useState([]);
+  const [currentAttachments, setCurrentAttachments] = useState([]);
+
+  // Load attachments khi editing
+  useEffect(() => {
+    if (isEditing && initialData?.id) {
+      loadAttachments(initialData.id);
+      if (attachments[initialData.id]) {
+        setCurrentAttachments(attachments[initialData.id]);
+      }
+    }
+  }, [isEditing, initialData?.id]);
+
+  // Update attachments khi thay đổi
+  useEffect(() => {
+    if (isEditing && initialData?.id && attachments[initialData.id]) {
+      setCurrentAttachments(attachments[initialData.id]);
+    }
+  }, [attachments]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,6 +48,26 @@ const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false }) => {
       ...prev,
       [name]: name === 'amount' ? (value === '' ? '' : Number(value)) : value,
     }));
+  };
+
+  const handleUploadImage = async (expenseId, file, description) => {
+    try {
+      await uploadAttachment(expenseId, file, description);
+      setCurrentAttachments(attachments[expenseId] || []);
+      onNotification?.('📸 Tải ảnh thành công', 'success');
+    } catch (err) {
+      onNotification?.(`❌ Lỗi: ${err.message}`, 'danger');
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    try {
+      await deleteAttachment(initialData.id, attachmentId);
+      setCurrentAttachments(currentAttachments.filter(a => a._id !== attachmentId));
+      onNotification?.('✅ Xóa ảnh thành công', 'success');
+    } catch (err) {
+      onNotification?.(`❌ Lỗi: ${err.message}`, 'danger');
+    }
   };
 
   const handleSubmit = (e) => {
@@ -39,6 +87,9 @@ const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false }) => {
       category: 'food',
       description: '',
       date: getTodayDate(),
+      walletId: '',
+      notes: '',
+      tags: [],
     });
   };
 
@@ -121,12 +172,64 @@ const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false }) => {
           />
         </div>
 
+        {/* NEW: Wallet Selection */}
+        <div className="form-group">
+          <label htmlFor="walletId">Ví / Tài khoản (tùy chọn)</label>
+          <select
+            id="walletId"
+            name="walletId"
+            value={formData.walletId}
+            onChange={handleChange}
+          >
+            <option value="">-- Không chọn --</option>
+            {wallets?.map((wallet) => (
+              <option key={wallet._id} value={wallet._id}>
+                {wallet.icon} {wallet.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* NEW: Notes */}
+        <div className="form-group">
+          <label htmlFor="notes">Ghi chú (tùy chọn)</label>
+          <textarea
+            id="notes"
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            placeholder="Thêm ghi chú thêm..."
+            maxLength="500"
+            rows="2"
+          />
+          <small style={{ color: '#7f8c8d', marginTop: '4px', display: 'block' }}>
+            {formData.notes.length}/500
+          </small>
+        </div>
+
         <div className="form-actions">
           <button type="submit" className="btn btn-primary">
             {isEditing ? '💾 Cập nhật' : '➕ Thêm'}
           </button>
         </div>
       </form>
+
+      {/* NEW: Images (only when editing) */}
+      {isEditing && initialData?.id && (
+        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}>📸 Ảnh hóa đơn</h3>
+          <ImageUpload
+            expenseId={initialData.id}
+            onUpload={handleUploadImage}
+            loading={attachmentLoading}
+          />
+          <ImageGallery
+            attachments={currentAttachments}
+            onDelete={handleDeleteAttachment}
+            loading={attachmentLoading}
+          />
+        </div>
+      )}
 
       <style>{`
         .form-card {

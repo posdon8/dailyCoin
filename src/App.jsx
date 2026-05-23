@@ -5,13 +5,22 @@ import Notification from './components/common/Notification';
 import HomePage from './pages/HomePage';
 import ExpensePage from './pages/ExpensePage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import BudgetPage from './pages/BudgetPage';
+import WalletPage from './pages/WalletPage';
+import AttachmentPage from './pages/AttachmentPage';
 import { useExpenses } from './hooks/useExpensesAPI';
-//import { useBudget } from './hooks/useBudget';
+import { useBudgets } from './hooks/useBudgets';
+import { useWallets } from './hooks/useWallets'; 
+import { useAttachments } from './hooks/useAttachments';
 import { MESSAGES } from './utils/constants';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import './styles/globals.css';
 
 const AppContent = () => {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
   const [currentPage, setCurrentPage] = useState('home');
   const [notification, setNotification] = useState(null);
   const {
@@ -32,7 +41,52 @@ const AppContent = () => {
       });
     }
   }, [error]);
+  const {
+  budgets,
+  summary: budgetSummary,
+  loading: budgetLoading,
+  loadBudgets,
+  loadBudgetSummary,
+  saveBudget,
+  deleteBudget,
+  getWarnings,
+} = useBudgets();
 
+const {
+  wallets,
+  summary: walletSummary,
+  loading: walletLoading,
+  createWallet,
+  updateWallet,
+  deleteWallet,
+} = useWallets(); // tự load trong useEffect rồi
+
+const {
+  loadAttachments,
+  uploadAttachment,
+  deleteAttachment,
+  getAttachmentsByExpense,
+} = useAttachments();
+
+// Load budget khi đổi tháng/năm
+useEffect(() => {
+  loadBudgets(selectedMonth, selectedYear);
+  loadBudgetSummary(selectedMonth, selectedYear);
+}, [selectedMonth, selectedYear]);
+
+// Cảnh báo budget
+useEffect(() => {
+  const warnings = getWarnings();
+  if (warnings.length > 0) {
+    const exceeded = warnings.filter(w => w.type === 'exceeded');
+    if (exceeded.length > 0) {
+      setNotification({
+        message: `🚨 Vượt ngân sách: ${exceeded.map(w => w.category).join(', ')}`,
+        type: 'danger',
+      });
+    }
+  }
+}, [budgetSummary]);
   const handleAddExpense = async (data) => {
     try {
       await addExpense(data);
@@ -109,24 +163,83 @@ const AppContent = () => {
             >
               📈 Phân tích
             </button>
+            <button
+              className={`nav-tab ${currentPage === 'budget' ? 'active' : ''}`}
+              onClick={() => navigateTo('budget')}
+            >
+              📊 Ngân sách
+            </button>
+            <button
+              className={`nav-tab ${currentPage === 'wallet' ? 'active' : ''}`}
+              onClick={() => navigateTo('wallet')}
+            >
+              💰 Ví tiền
+            </button>
+            <button
+              className={`nav-tab ${currentPage === 'attachments' ? 'active' : ''}`}
+              onClick={() => navigateTo('attachments')}
+            >
+              📎 Đính kèm
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Page Content */}
-      <main className="main-content">
-        {currentPage === 'home' && <HomePage expenses={expenses} />}
-        {currentPage === 'expenses' && (
-          <ExpensePage
-            expenses={expenses}
-            onAddExpense={handleAddExpense}
-            onUpdateExpense={handleUpdateExpense}
-            onDeleteExpense={handleDeleteExpense}
-            loading={loading}
-          />
-        )}
-        {currentPage === 'analytics' && <AnalyticsPage expenses={expenses} />}
-      </main>
+      {/* ✅ ĐÚNG - chỉ 1 main duy nhất */}
+<main className="main-content">
+  {currentPage === 'home' && <HomePage expenses={expenses} budgetSummary={budgetSummary} />}
+  {currentPage === 'expenses' && (
+    <ExpensePage
+      expenses={expenses}
+      onAddExpense={handleAddExpense}
+      onUpdateExpense={handleUpdateExpense}
+      onDeleteExpense={handleDeleteExpense}
+      loading={loading}
+    />
+  )}
+  {currentPage === 'analytics' && <AnalyticsPage expenses={expenses} />}
+  {currentPage === 'budget' && (
+    <BudgetPage
+      budgets={budgets}
+      summary={budgetSummary}
+      loading={budgetLoading}
+      selectedMonth={selectedMonth}
+      selectedYear={selectedYear}
+      onMonthChange={setSelectedMonth}
+      onYearChange={setSelectedYear}
+      onSaveBudget={async (category, limit, notes) => {
+        await saveBudget(category, limit, selectedMonth, selectedYear, notes);
+        setNotification({ message: '✅ Lưu ngân sách thành công', type: 'success' });
+        loadBudgets(selectedMonth, selectedYear);
+        loadBudgetSummary(selectedMonth, selectedYear);
+      }}
+      onDeleteBudget={async (id) => {
+        await deleteBudget(id);
+        setNotification({ message: '🗑️ Đã xóa ngân sách', type: 'success' });
+      }}
+    />
+  )}
+  {currentPage === 'wallet' && (
+    <WalletPage
+      wallets={wallets}
+      summary={walletSummary}
+      loading={walletLoading}
+      onCreateWallet={createWallet}
+      onUpdateWallet={updateWallet}
+      onDeleteWallet={deleteWallet}
+    />
+  )}
+  {currentPage === 'attachments' && (
+    <AttachmentPage
+      expenses={expenses}
+      onLoadAttachments={loadAttachments}
+      onUpload={uploadAttachment}
+      onDelete={deleteAttachment}
+      getAttachmentsByExpense={getAttachmentsByExpense}
+    />
+  )}
+</main>
 
       {/* Notification */}
       {notification && (

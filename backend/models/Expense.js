@@ -41,6 +41,20 @@ const expenseSchema = new mongoose.Schema(
       default: '',
       maxlength: [500, 'Ghi chú không được vượt quá 500 ký tự'],
     },
+    walletId: {
+      type: String,
+      default: '', // Tham chiếu đến Wallet._id hoặc tên ví
+    },
+    attachments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Attachment',
+      },
+    ],
+    receipt_number: {
+      type: String,
+      default: '', // Số hóa đơn/biên lai
+    },
   },
   {
     timestamps: true, // Tự động thêm createdAt, updatedAt
@@ -51,6 +65,8 @@ const expenseSchema = new mongoose.Schema(
 // Index cho tìm kiếm nhanh
 expenseSchema.index({ userId: 1, date: -1 });
 expenseSchema.index({ userId: 1, category: 1 });
+expenseSchema.index({ userId: 1, walletId: 1 });
+expenseSchema.index({ notes: 'text', description: 'text' }); // Text search cho notes
 
 // Virtual: ngày định dạng YYYY-MM-DD
 expenseSchema.virtual('dateString').get(function () {

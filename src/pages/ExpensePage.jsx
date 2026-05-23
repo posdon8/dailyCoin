@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import ExpenseForm from '../components/expense/ExpenseForm';
 import ExpenseList from '../components/expense/ExpenseList';
 import ExpenseFilter from '../components/expense/ExpenseFilter';
 import ExpenseSearch from '../components/expense/ExpenseSearch';
 
 const ExpensePage = ({ expenses, onAddExpense, onUpdateExpense, onDeleteExpense, loading = false }) => {
+  const { showNotification } = useNotification();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -18,7 +20,9 @@ const ExpensePage = ({ expenses, onAddExpense, onUpdateExpense, onDeleteExpense,
 
   if (searchTerm) {
     filtered = filtered.filter((exp) =>
-      exp.description.toLowerCase().includes(searchTerm.toLowerCase())
+      exp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exp.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exp.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }
 
@@ -52,6 +56,7 @@ const ExpensePage = ({ expenses, onAddExpense, onUpdateExpense, onDeleteExpense,
         onSubmit={handleFormSubmit}
         initialData={editingExpense || undefined}
         isEditing={!!editingId}
+        onNotification={showNotification}
       />
 
       {editingId && (
