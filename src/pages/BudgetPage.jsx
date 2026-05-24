@@ -155,6 +155,8 @@ const handleDeleteBudget = async (budgetId) => {
         <h3>📋 Danh sách ngân sách</h3>
         <BudgetList
           budgets={budgets}
+          month={month}
+          year={year}
           onEdit={handleEditClick}
           onDelete={handleDeleteBudget}
           loading={loading}

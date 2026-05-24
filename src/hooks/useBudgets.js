@@ -23,6 +23,7 @@ export const useBudgets = () => {
       setLoading(true);
       setError(null);
       const data = await fetchBudgets(month, year);
+      console.log('budgets loaded:', data);
       setBudgets(data);
     } catch (err) {
       setError(err.message);
