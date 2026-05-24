@@ -55,7 +55,7 @@ export const getExpenseById = async (req, res) => {
  */
 export const createExpense = async (req, res) => {
   try {
-    const { userId = 'default-user', amount, category, description, date, tags, notes } = req.body;
+    const { userId = 'default-user', amount, category, description, date, walletId, tags, notes } = req.body; //add walletId
 
     // Validate dữ liệu
     if (!amount || !category || !description || !date) {
@@ -70,6 +70,7 @@ export const createExpense = async (req, res) => {
       amount,
       category,
       description,
+      walletId: walletId || '',  // add walletId
       date: new Date(date),
       tags: tags || [],
       notes: notes || '',
@@ -94,7 +95,7 @@ export const createExpense = async (req, res) => {
  */
 export const updateExpense = async (req, res) => {
   try {
-    const { amount, category, description, date, tags, notes } = req.body;
+    const { amount, category, description, date, walletId, tags, notes } = req.body;  //add walletId
 
     const expense = await Expense.findByIdAndUpdate(
       req.params.id,
@@ -103,6 +104,7 @@ export const updateExpense = async (req, res) => {
         category,
         description,
         date: date ? new Date(date) : undefined,
+        walletId: walletId || undefined,  // add walletId
         tags,
         notes,
       },

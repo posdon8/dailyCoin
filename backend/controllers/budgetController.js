@@ -42,7 +42,9 @@ export const getBudgets = async (req, res) => {
         },
       },
     ]);
-
+    console.log('month/year:', month, year);
+    console.log('budgets found:', budgets.length);
+    console.log('expenses aggregate:', JSON.stringify(expenses));
     // Map expense thực tế vào từng budget
     const spentMap = {};
     expenses.forEach((e) => {
@@ -60,7 +62,7 @@ export const getBudgets = async (req, res) => {
         status: percentage >= 100 ? 'exceeded' : percentage >= 80 ? 'warning' : 'safe',
       };
     });
-
+    console.log('result sent to FE:', JSON.stringify(result));
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });

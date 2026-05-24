@@ -46,7 +46,7 @@ const BudgetForm = ({ budget, month, year, onSubmit, onCancel }) => {
         >
           <option value="">-- Chọn danh mục --</option>
           {CATEGORIES_LIST.map((cat) => (
-            <option key={`cat-${cat.id}`} value={cat.key}>
+            <option key={`cat-${cat.id}`} value={cat.id}>
               {cat.icon} {cat.label}
             </option>
           ))}

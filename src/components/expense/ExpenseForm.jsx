@@ -74,7 +74,8 @@ const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false, onNotifi
     e.preventDefault();
     const trimmed = trimStringValues(formData);
     const validation = validateExpense(trimmed);
-
+    console.log('FORM DATA:', formData);
+  console.log('TRIMMED:', trimmed);
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
@@ -183,7 +184,7 @@ const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false, onNotifi
           >
             <option value="">-- Không chọn --</option>
             {wallets?.map((wallet) => (
-              <option key={wallet._id} value={wallet._id}>
+              <option key={wallet.id} value={wallet.id}>
                 {wallet.icon} {wallet.name}
               </option>
             ))}
