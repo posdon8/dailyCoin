@@ -1,15 +1,13 @@
 import Wallet from '../models/Wallet.js';
 import Expense from '../models/Expense.js';
 
-const DEFAULT_USER = 'default-user';
-
 /**
  * GET /api/wallets
  * Lấy tất cả ví của người dùng
  */
 export const getWallets = async (req, res) => {
   try {
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
     const wallets = await Wallet.find({ userId }).sort({ createdAt: 1 });
     res.json({
       success: true,
@@ -31,7 +29,8 @@ export const getWallets = async (req, res) => {
  */
 export const getWalletById = async (req, res) => {
   try {
-    const wallet = await Wallet.findById(req.params.id);
+    const userId = req.user?.id;
+    const wallet = await Wallet.findOne({ _id: req.params.id, userId });
     if (!wallet) {
       return res.status(404).json({
         success: false,
@@ -58,7 +57,7 @@ export const getWalletById = async (req, res) => {
 export const createWallet = async (req, res) => {
   try {
     const { name, type, balance, currency, color, icon, description } = req.body;
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
 
     if (!name || !type) {
       return res.status(400).json({
@@ -106,10 +105,11 @@ export const createWallet = async (req, res) => {
  */
 export const updateWallet = async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { name, type, balance, currency, color, icon, description, isActive } = req.body;
 
-    const wallet = await Wallet.findByIdAndUpdate(
-      req.params.id,
+    const wallet = await Wallet.findOneAndUpdate(
+      { _id: req.params.id, userId },
       {
         name,
         type,
@@ -157,7 +157,8 @@ export const updateWallet = async (req, res) => {
  */
 export const deleteWallet = async (req, res) => {
   try {
-    const wallet = await Wallet.findByIdAndDelete(req.params.id);
+    const userId = req.user?.id;
+    const wallet = await Wallet.findOneAndDelete({ _id: req.params.id, userId });
 
     if (!wallet) {
       return res.status(404).json({
@@ -191,7 +192,8 @@ export const deleteWallet = async (req, res) => {
  */
 export const getWalletBalance = async (req, res) => {
   try {
-    const wallet = await Wallet.findById(req.params.id);
+    const userId = req.user?.id;
+    const wallet = await Wallet.findOne({ _id: req.params.id, userId });
     if (!wallet) {
       return res.status(404).json({
         success: false,
@@ -228,6 +230,7 @@ export const getWalletBalance = async (req, res) => {
  */
 export const updateWalletBalance = async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { balance, operation, amount } = req.body;
 
     let newBalance = balance;
@@ -244,8 +247,8 @@ export const updateWalletBalance = async (req, res) => {
       });
     }
 
-    const wallet = await Wallet.findByIdAndUpdate(
-      req.params.id,
+    const wallet = await Wallet.findOneAndUpdate(
+      { _id: req.params.id, userId },
       { balance: newBalance },
       { new: true }
     );
@@ -270,7 +273,7 @@ export const updateWalletBalance = async (req, res) => {
  */
 export const getWalletsSummary = async (req, res) => {
   try {
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
     const wallets = await Wallet.find({ userId, isActive: true });
 
     const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);

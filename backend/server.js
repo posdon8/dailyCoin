@@ -6,10 +6,12 @@ import expenseRoutes from './routes/expenseRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
 import attachmentRoutes from './routes/attachmentRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 // Load environment variables
 dotenv.config();
+import passport from './config/passport.js';
 
 // Connect to MongoDB
 connectDB();
@@ -33,6 +35,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use(passport.initialize());
+app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/wallets', walletRoutes);

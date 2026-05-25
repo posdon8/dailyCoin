@@ -1,16 +1,14 @@
 import Attachment from '../models/Attachment.js';
 import Expense from '../models/Expense.js';
 
-const DEFAULT_USER = 'default-user';
-
 /**
  * POST /api/attachments
  * Tạo attachment (tải ảnh lên)
  */
 export const uploadAttachment = async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { expenseId, fileName, mimeType, fileSize, fileData, description } = req.body;
-    const userId = DEFAULT_USER;
 
     if (!expenseId || !fileName || !fileData) {
       return res.status(400).json({
@@ -19,12 +17,12 @@ export const uploadAttachment = async (req, res) => {
       });
     }
 
-    // Kiểm tra expense tồn tại
+    // Kiểm tra expense tồn tại và thuộc người dùng
     const expense = await Expense.findById(expenseId);
-    if (!expense) {
+    if (!expense || expense.userId !== userId) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy chi tiêu',
+        message: 'Không tìm thấy chi tiêu hoặc bạn không có quyền',
       });
     }
 
@@ -74,9 +72,10 @@ export const uploadAttachment = async (req, res) => {
  */
 export const getAttachmentsByExpense = async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { expenseId } = req.params;
 
-    const attachments = await Attachment.find({ expenseId });
+    const attachments = await Attachment.find({ expenseId, userId });
 
     res.json({
       success: true,
@@ -98,7 +97,8 @@ export const getAttachmentsByExpense = async (req, res) => {
  */
 export const getAttachmentById = async (req, res) => {
   try {
-    const attachment = await Attachment.findById(req.params.id);
+    const userId = req.user?.id;
+    const attachment = await Attachment.findOne({ _id: req.params.id, userId });
 
     if (!attachment) {
       return res.status(404).json({
@@ -126,7 +126,8 @@ export const getAttachmentById = async (req, res) => {
  */
 export const deleteAttachment = async (req, res) => {
   try {
-    const attachment = await Attachment.findByIdAndDelete(req.params.id);
+    const userId = req.user?.id;
+    const attachment = await Attachment.findOneAndDelete({ _id: req.params.id, userId });
 
     if (!attachment) {
       return res.status(404).json({
@@ -160,7 +161,7 @@ export const deleteAttachment = async (req, res) => {
  */
 export const getAttachments = async (req, res) => {
   try {
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
     const attachments = await Attachment.find({ userId })
       .sort({ uploadedAt: -1 })
       .limit(100);
@@ -185,10 +186,11 @@ export const getAttachments = async (req, res) => {
  */
 export const updateAttachment = async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { description } = req.body;
 
-    const attachment = await Attachment.findByIdAndUpdate(
-      req.params.id,
+    const attachment = await Attachment.findOneAndUpdate(
+      { _id: req.params.id, userId },
       { description },
       { new: true, runValidators: true }
     );

@@ -10,10 +10,12 @@ import WalletPage from './pages/WalletPage';
 import AttachmentPage from './pages/AttachmentPage';
 import { useExpenses } from './hooks/useExpensesAPI';
 import { useBudgets } from './hooks/useBudgets';
-import { useWallets } from './hooks/useWallets'; 
+import { useWallets } from './hooks/useWallets';
 import { useAttachments } from './hooks/useAttachments';
+import { useAuth } from './hooks/useAuth';
+import AuthPage from './pages/AuthPage';
 import { MESSAGES } from './utils/constants';
-import { NotificationProvider, useNotification } from './context/NotificationContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './styles/globals.css';
 
 const AppContent = () => {
@@ -23,6 +25,8 @@ const AppContent = () => {
 
   const [currentPage, setCurrentPage] = useState('home');
   const [notification, setNotification] = useState(null);
+  const auth = useAuth();
+
   const {
     expenses,
     loading,
@@ -30,16 +34,19 @@ const AppContent = () => {
     addExpense,
     updateExpense,
     deleteExpense,
-  } = useExpenses();
+  } = useExpenses(auth.isAuthenticated);
 
   // Hiển thị error nếu có
   useEffect(() => {
-    if (error) {
+    if (!error) return;
+    const timer = window.setTimeout(() => {
       setNotification({
         message: `❌ Lỗi: ${error}`,
         type: 'danger',
       });
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [error]);
   const {
   budgets,
@@ -56,10 +63,12 @@ const {
   wallets,
   summary: walletSummary,
   loading: walletLoading,
+  loadWallets,
+  loadWalletsSummary,
   createWallet,
   updateWallet,
   deleteWallet,
-} = useWallets(); // tự load trong useEffect rồi
+} = useWallets(auth.isAuthenticated); // tự load trong useEffect rồi
 
 const {
   loadAttachments,
@@ -68,11 +77,49 @@ const {
   getAttachmentsByExpense,
 } = useAttachments();
 
-// Load budget khi đổi tháng/năm
+const handleLogin = async (email, password) => {
+  try {
+    await auth.login(email, password);
+    setNotification({ message: '✅ Đăng nhập thành công', type: 'success' });
+  } catch (err) {
+    setNotification({ message: `❌ Lỗi: ${err.message}`, type: 'danger' });
+    throw err;
+  }
+};
+
+const handleRegister = async (name, email, password) => {
+  try {
+    await auth.register(email, password, name);
+    setNotification({ message: '✅ Đăng ký thành công', type: 'success' });
+  } catch (err) {
+    setNotification({ message: `❌ Lỗi: ${err.message}`, type: 'danger' });
+    throw err;
+  }
+};
+
 useEffect(() => {
-  loadBudgets(selectedMonth, selectedYear);
-  loadBudgetSummary(selectedMonth, selectedYear);
-}, [selectedMonth, selectedYear]);
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const error = params.get('error');
+  
+  if (token) {
+    localStorage.setItem('token', token);
+    window.history.replaceState({}, '', '/');
+    window.location.reload();
+  }
+  
+  if (error) {
+    setNotification({ message: '❌ Đăng nhập Google thất bại', type: 'danger' });
+    window.history.replaceState({}, '', '/');
+  }
+}, []);
+// Load budget khi đổi tháng/năm và khi người dùng đăng nhập
+useEffect(() => {
+  if (auth.isAuthenticated) {
+    loadBudgets(selectedMonth, selectedYear);
+    loadBudgetSummary(selectedMonth, selectedYear);
+  }
+}, [selectedMonth, selectedYear, auth.isAuthenticated]);
 
 // Cảnh báo budget
 useEffect(() => {
@@ -80,20 +127,44 @@ useEffect(() => {
   if (warnings.length > 0) {
     const exceeded = warnings.filter(w => w.type === 'exceeded');
     if (exceeded.length > 0) {
-      setNotification({
-        message: `🚨 Vượt ngân sách: ${exceeded.map(w => w.category).join(', ')}`,
-        type: 'danger',
-      });
+        const timer = window.setTimeout(() => {
+          setNotification({
+            message: `🚨 Vượt ngân sách: ${exceeded.map(w => w.category).join(', ')}`,
+            type: 'danger',
+          });
+        }, 0);
+        return () => window.clearTimeout(timer);
+      }
     }
-  }
-}, [budgetSummary]);
-  const handleAddExpense = async (data) => {
+  }, [budgetSummary]);
+
+if (!auth.isAuthenticated) {
+  return (
+    <div className="app">
+      <Header />
+      <main className="main-content">
+        <AuthPage
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          loading={auth.loading}
+          authError={auth.error}
+        />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+const handleAddExpense = async (data) => {
     try {
       await addExpense(data);
       setNotification({
         message: MESSAGES.addSuccess,
         type: 'success',
       });
+      await loadBudgetSummary(selectedMonth, selectedYear);
+      await loadWallets();
+      await loadWalletsSummary();
     } catch (err) {
       setNotification({
         message: `❌ Lỗi: ${err.message}`,
@@ -109,6 +180,9 @@ useEffect(() => {
         message: MESSAGES.editSuccess,
         type: 'success',
       });
+      await loadBudgetSummary(selectedMonth, selectedYear);
+      await loadWallets();
+      await loadWalletsSummary();
     } catch (err) {
       setNotification({
         message: `❌ Lỗi: ${err.message}`,
@@ -124,6 +198,9 @@ useEffect(() => {
         message: MESSAGES.deleteSuccess,
         type: 'success',
       });
+      await loadBudgetSummary(selectedMonth, selectedYear);
+      await loadWallets();
+      await loadWalletsSummary();
     } catch (err) {
       setNotification({
         message: `❌ Lỗi: ${err.message}`,
@@ -140,6 +217,16 @@ useEffect(() => {
   return (
     <div className="app">
       <Header />
+      <div className="auth-bar">
+        <div className="container">
+          <div className="auth-status">
+            <span>Xin chào, {auth.user?.email}</span>
+            <button className="btn btn-secondary" onClick={() => { auth.logout(); setCurrentPage('home'); setNotification({ message: '✅ Đã đăng xuất', type: 'success' }); }}>
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Navigation Tabs */}
       <nav className="nav-tabs">
@@ -302,6 +389,54 @@ useEffect(() => {
         .main-content {
           flex: 1;
           padding: 20px 0;
+        }
+
+        .auth-bar {
+          background-color: #fff;
+          border-bottom: 1px solid #ecf0f1;
+          padding: 12px 0;
+        }
+
+        .auth-status {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .auth-page {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: calc(100vh - 100px);
+          padding: 40px 16px;
+          background: #f4f7fb;
+        }
+
+        .auth-box {
+          width: min(520px, 100%);
+          background: #fff;
+          border: 1px solid #e6eaef;
+          border-radius: 14px;
+          padding: 28px;
+          box-shadow: 0 16px 40px rgba(16, 44, 88, 0.05);
+        }
+
+        .auth-error {
+          margin-bottom: 18px;
+          color: #c0392b;
+          background: #fdecea;
+          border: 1px solid #f5c6cb;
+          border-radius: 8px;
+          padding: 12px 14px;
+        }
+
+        .auth-toggle {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 16px;
+          gap: 12px;
         }
 
         @media (max-width: 768px) {

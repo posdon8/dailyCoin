@@ -1,8 +1,6 @@
 import Budget from '../models/Budget.js';
 import Expense from '../models/Expense.js';
 
-const DEFAULT_USER = 'default-user';
-
 // ================================
 // GET /api/budgets?month=5&year=2026
 // Lấy tất cả budget của tháng
@@ -10,7 +8,7 @@ const DEFAULT_USER = 'default-user';
 export const getBudgets = async (req, res) => {
   try {
     const { month, year } = req.query;
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
 
     if (!month || !year) {
       return res.status(400).json({ message: 'Thiếu tham số month hoặc year' });
@@ -42,9 +40,7 @@ export const getBudgets = async (req, res) => {
         },
       },
     ]);
-    console.log('month/year:', month, year);
-    console.log('budgets found:', budgets.length);
-    console.log('expenses aggregate:', JSON.stringify(expenses));
+  
     // Map expense thực tế vào từng budget
     const spentMap = {};
     expenses.forEach((e) => {
@@ -62,7 +58,7 @@ export const getBudgets = async (req, res) => {
         status: percentage >= 100 ? 'exceeded' : percentage >= 80 ? 'warning' : 'safe',
       };
     });
-    console.log('result sent to FE:', JSON.stringify(result));
+    
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
@@ -76,7 +72,7 @@ export const getBudgets = async (req, res) => {
 export const upsertBudget = async (req, res) => {
   try {
     const { category, limit, month, year, notes } = req.body;
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
 
     if (!category || limit === undefined || !month || !year) {
       return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
@@ -126,7 +122,7 @@ export const deleteBudget = async (req, res) => {
 export const getBudgetSummary = async (req, res) => {
   try {
     const { month, year } = req.query;
-    const userId = DEFAULT_USER;
+    const userId = req.user?.id;
 
     if (!month || !year) {
       return res.status(400).json({ message: 'Thiếu tham số month hoặc year' });

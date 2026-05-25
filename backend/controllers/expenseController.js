@@ -1,4 +1,5 @@
 import Expense from '../models/Expense.js';
+import Wallet from '../models/Wallet.js';
 
 /**
  * Lấy tất cả chi tiêu của user
@@ -6,7 +7,7 @@ import Expense from '../models/Expense.js';
  */
 export const getAllExpenses = async (req, res) => {
   try {
-    const { userId = 'default-user' } = req.query;
+    const userId = req.user?.id;
     const expenses = await Expense.find({ userId }).sort({ date: -1 });
 
     res.status(200).json({
@@ -55,7 +56,8 @@ export const getExpenseById = async (req, res) => {
  */
 export const createExpense = async (req, res) => {
   try {
-    const { userId = 'default-user', amount, category, description, date, walletId, tags, notes } = req.body; //add walletId
+    const userId = req.user?.id;
+    const { amount, category, description, date, walletId, tags, notes } = req.body;
 
     // Validate dữ liệu
     if (!amount || !category || !description || !date) {
@@ -65,16 +67,30 @@ export const createExpense = async (req, res) => {
       });
     }
 
+    const walletOwnerId = userId;
+    if (walletId) {
+      const wallet = await Wallet.findOne({ _id: walletId, userId: walletOwnerId });
+      if (!wallet) {
+        return res.status(400).json({ success: false, message: 'Ví không tồn tại hoặc không thuộc người dùng' });
+      }
+    }
+
     const expense = await Expense.create({
       userId,
       amount,
       category,
       description,
-      walletId: walletId || '',  // add walletId
+      walletId: walletId || '',
       date: new Date(date),
       tags: tags || [],
       notes: notes || '',
     });
+
+    if (walletId) {
+      await Wallet.findByIdAndUpdate(walletId, {
+        $inc: { balance: -amount },
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -95,7 +111,28 @@ export const createExpense = async (req, res) => {
  */
 export const updateExpense = async (req, res) => {
   try {
-    const { amount, category, description, date, walletId, tags, notes } = req.body;  //add walletId
+    const userId = req.user?.id;
+    const { amount, category, description, date, walletId, tags, notes } = req.body;
+
+    const existingExpense = await Expense.findById(req.params.id);
+    if (!existingExpense || existingExpense.userId !== userId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chi tiêu không tìm thấy',
+      });
+    }
+
+    const oldWalletId = existingExpense.walletId || '';
+    const oldAmount = existingExpense.amount || 0;
+    const newWalletId = walletId === undefined || walletId === null ? oldWalletId : walletId || '';
+    const newAmount = amount !== undefined ? amount : oldAmount;
+
+    if (newWalletId && newWalletId !== oldWalletId) {
+      const wallet = await Wallet.findOne({ _id: newWalletId, userId });
+      if (!wallet) {
+        return res.status(400).json({ success: false, message: 'Ví mới không tồn tại hoặc không thuộc người dùng' });
+      }
+    }
 
     const expense = await Expense.findByIdAndUpdate(
       req.params.id,
@@ -103,21 +140,32 @@ export const updateExpense = async (req, res) => {
         amount,
         category,
         description,
-        date: date ? new Date(date) : undefined,
-        walletId: walletId || undefined,  // add walletId
+        date: date ? new Date(date) : existingExpense.date,
+        walletId: newWalletId,
         tags,
         notes,
       },
       {
-        new: true, // Trả về document đã được cập nhật
+        new: true,
         runValidators: true,
       }
     );
 
-    if (!expense) {
-      return res.status(404).json({
-        success: false,
-        message: 'Chi tiêu không tìm thấy',
+    if (oldWalletId && oldWalletId !== newWalletId) {
+      await Wallet.findByIdAndUpdate(oldWalletId, {
+        $inc: { balance: oldAmount },
+      });
+    }
+
+    if (newWalletId && oldWalletId !== newWalletId) {
+      await Wallet.findByIdAndUpdate(newWalletId, {
+        $inc: { balance: -newAmount },
+      });
+    }
+
+    if (newWalletId && oldWalletId === newWalletId && oldAmount !== newAmount) {
+      await Wallet.findByIdAndUpdate(newWalletId, {
+        $inc: { balance: oldAmount - newAmount },
       });
     }
 
@@ -140,19 +188,27 @@ export const updateExpense = async (req, res) => {
  */
 export const deleteExpense = async (req, res) => {
   try {
-    const expense = await Expense.findByIdAndDelete(req.params.id);
-
-    if (!expense) {
+    const userId = req.user?.id;
+    const expense = await Expense.findById(req.params.id);
+    if (!expense || expense.userId !== userId) {
       return res.status(404).json({
         success: false,
         message: 'Chi tiêu không tìm thấy',
       });
     }
 
+    const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
+
+    if (expense.walletId) {
+      await Wallet.findByIdAndUpdate(expense.walletId, {
+        $inc: { balance: expense.amount },
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Chi tiêu được xóa thành công',
-      data: expense,
+      data: deletedExpense || expense,
     });
   } catch (error) {
     res.status(500).json({
@@ -168,7 +224,8 @@ export const deleteExpense = async (req, res) => {
  */
 export const getExpensesByDateRange = async (req, res) => {
   try {
-    const { userId = 'default-user', startDate, endDate } = req.query;
+    const userId = req.user?.id;
+    const { startDate, endDate } = req.query;
 
     if (!startDate || !endDate) {
       return res.status(400).json({
@@ -204,7 +261,8 @@ export const getExpensesByDateRange = async (req, res) => {
  */
 export const getExpensesByMonth = async (req, res) => {
   try {
-    const { userId = 'default-user', month, year } = req.query;
+    const userId = req.user?.id;
+    const { month, year } = req.query;
 
     if (!month || !year) {
       return res.status(400).json({
@@ -243,7 +301,8 @@ export const getExpensesByMonth = async (req, res) => {
  */
 export const getExpenseStats = async (req, res) => {
   try {
-    const { userId = 'default-user', month, year } = req.query;
+    const userId = req.user?.id;
+    const { month, year } = req.query;
 
     let dateFilter = { userId };
     if (month && year) {
@@ -315,7 +374,7 @@ export const getExpenseStats = async (req, res) => {
  */
 export const deleteAllExpenses = async (req, res) => {
   try {
-    const { userId = 'default-user' } = req.query;
+    const userId = req.user?.id;
 
     const result = await Expense.deleteMany({ userId });
 
