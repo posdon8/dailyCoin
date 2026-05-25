@@ -3,17 +3,58 @@
  */
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-const USER_ID = 'default-user'; // Tạm thời, sau sẽ lấy từ auth
+const AUTH_TOKEN_KEY = 'dailyExpensesAuthToken';
+const USER_STORAGE_KEY = 'dailyExpensesCurrentUser';
+
+const getAuthToken = () => {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+export const setAuthToken = (token) => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
+};
+
+export const clearAuthToken = () => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
+  }
+};
+
+export const getStoredUser = () => {
+  if (typeof localStorage === 'undefined') return null;
+  const raw = localStorage.getItem(USER_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredUser = (user) => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  }
+};
 
 /**
  * Hàm fetch chung với error handling
  */
 const apiCall = async (endpoint, options = {}) => {
   const url = `${API_URL}${endpoint}`;
+  const token = getAuthToken();
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   try {
     const response = await fetch(url, {
@@ -33,11 +74,32 @@ const apiCall = async (endpoint, options = {}) => {
   }
 };
 
+export const loginAPI = async (email, password) => {
+  const response = await apiCall('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+  return response.data;
+};
+
+export const registerAPI = async (email, password, name = '') => {
+  const response = await apiCall('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, name }),
+  });
+  return response.data;
+};
+
+export const fetchCurrentUserAPI = async () => {
+  const response = await apiCall('/auth/me');
+  return response.data;
+};
+
 /**
  * Lấy tất cả chi tiêu
  */
 export const fetchExpenses = async () => {
-  const response = await apiCall(`/expenses?userId=${USER_ID}`);
+  const response = await apiCall('/expenses');
   // Format lại từ MongoDB response thành format frontend
   return response.data.map((expense) => ({
     id: expense._id,
@@ -76,7 +138,6 @@ export const createExpenseAPI = async (expense) => {
   const response = await apiCall('/expenses', {
     method: 'POST',
     body: JSON.stringify({
-      userId: USER_ID,
       amount: expense.amount,
       category: expense.category,
       description: expense.description,
@@ -142,7 +203,7 @@ export const deleteExpenseAPI = async (id) => {
  */
 export const fetchExpensesByDateRange = async (startDate, endDate) => {
   const response = await apiCall(
-    `/expenses/range/search?userId=${USER_ID}&startDate=${startDate}&endDate=${endDate}`
+    `/expenses/range/search?startDate=${startDate}&endDate=${endDate}`
   );
   return response.data.map((expense) => ({
     id: expense._id,
@@ -161,7 +222,7 @@ export const fetchExpensesByDateRange = async (startDate, endDate) => {
  */
 export const fetchExpensesByMonth = async (month, year) => {
   const response = await apiCall(
-    `/expenses/month/search?userId=${USER_ID}&month=${month}&year=${year}`
+    `/expenses/month/search?month=${month}&year=${year}`
   );
   return response.data.map((expense) => ({
     id: expense._id,
@@ -180,7 +241,7 @@ export const fetchExpensesByMonth = async (month, year) => {
  */
 export const fetchExpenseStats = async (month, year) => {
   const response = await apiCall(
-    `/expenses/stats/analytics?userId=${USER_ID}&month=${month}&year=${year}`
+    `/expenses/stats/analytics?month=${month}&year=${year}`
   );
   return response.data;
 };

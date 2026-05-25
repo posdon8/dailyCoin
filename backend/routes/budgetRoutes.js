@@ -5,8 +5,10 @@ import {
     deleteBudget,
     getBudgetSummary,
 } from '../controllers/budgetController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+router.use(protect);
 
 // GET    /api/budgets?month=5&year=2026        — Lấy budgets + chi tiêu thực tế
 // POST   /api/budgets                          — Tạo hoặc cập nhật budget

@@ -10,20 +10,20 @@ import {
   getExpenseStats,
   deleteAllExpenses,
 } from '../controllers/expenseController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+router.use(protect);
 
 // CRUD Routes
 router.get('/', getAllExpenses);
+router.get('/range/search', getExpensesByDateRange);
+router.get('/month/search', getExpensesByMonth);
+router.get('/stats/analytics', getExpenseStats);
 router.get('/:id', getExpenseById);
 router.post('/', createExpense);
 router.put('/:id', updateExpense);
 router.delete('/:id', deleteExpense);
-
-// Advanced Routes
-router.get('/range/search', getExpensesByDateRange);
-router.get('/month/search', getExpensesByMonth);
-router.get('/stats/analytics', getExpenseStats);
 
 // Cleanup (Testing only)
 router.delete('/', deleteAllExpenses);

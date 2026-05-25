@@ -9,8 +9,10 @@ import {
   updateWalletBalance,
   getWalletsSummary,
 } from '../controllers/walletController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+router.use(protect);
 
 // GET    /api/wallets               — Lấy tất cả ví
 // GET    /api/wallets/summary/total — Tổng hợp tất cả ví

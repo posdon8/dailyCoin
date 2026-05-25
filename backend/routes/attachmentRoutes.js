@@ -7,8 +7,10 @@ import {
   getAttachments,
   updateAttachment,
 } from '../controllers/attachmentController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+router.use(protect);
 
 // GET    /api/attachments                  — Lấy tất cả attachment
 // GET    /api/attachments/:id              — Lấy chi tiết attachment
@@ -19,8 +21,8 @@ const router = express.Router();
 
 router.get('/', getAttachments);
 router.post('/', uploadAttachment);
-router.get('/:id', getAttachmentById);
 router.get('/expense/:expenseId', getAttachmentsByExpense);
+router.get('/:id', getAttachmentById);
 router.post('/:id/update', updateAttachment);
 router.delete('/:id', deleteAttachment);
 

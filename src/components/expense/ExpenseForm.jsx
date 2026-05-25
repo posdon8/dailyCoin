@@ -184,7 +184,7 @@ const ExpenseForm = ({ onSubmit, initialData = null, isEditing = false, onNotifi
           >
             <option value="">-- Không chọn --</option>
             {wallets?.map((wallet) => (
-              <option key={wallet.id} value={wallet.id}>
+              <option key={wallet._id} value={wallet._id}>
                 {wallet.icon} {wallet.name}
               </option>
             ))}

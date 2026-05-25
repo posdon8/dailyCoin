@@ -11,7 +11,7 @@ import {
 /**
  * Custom hook để quản lý ví/tài khoản
  */
-export const useWallets = () => {
+export const useWallets = (enabled = true) => {
   const [wallets, setWallets] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -127,9 +127,14 @@ export const useWallets = () => {
    * Load khi component mount
    */
   useEffect(() => {
-    loadWallets();
-    loadWalletsSummary();
-  }, []);
+    if (enabled) {
+      loadWallets();
+      loadWalletsSummary();
+    } else {
+      setWallets([]);
+      setSummary(null);
+    }
+  }, [enabled]);
 
   return {
     wallets,

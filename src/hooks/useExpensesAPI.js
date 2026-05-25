@@ -13,15 +13,20 @@ import {
 /**
  * Custom hook để quản lý chi tiêu - API Version
  */
-export const useExpenses = () => {
+export const useExpenses = (enabled = true) => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load dữ liệu từ API khi component mount
+  // Load dữ liệu từ API khi component mount hoặc khi auth ready
   useEffect(() => {
-    loadExpenses();
-  }, []);
+    if (enabled) {
+      loadExpenses();
+    } else {
+      setExpenses([]);
+      setLoading(false);
+    }
+  }, [enabled]);
 
   /**
    * Load tất cả chi tiêu
