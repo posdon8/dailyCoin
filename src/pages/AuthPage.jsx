@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../services/api';
 
 const AuthPage = ({ onLogin, onRegister, loading, authError }) => {
     const [isRegister, setIsRegister] = useState(false);
@@ -7,7 +8,7 @@ const AuthPage = ({ onLogin, onRegister, loading, authError }) => {
     const [name, setName] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:5000/api/auth/google';
+        window.location.href = `${API_URL}/auth/google`;
         };
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -50,6 +51,7 @@ const AuthPage = ({ onLogin, onRegister, loading, authError }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
+              autoComplete="email"
             />
           </div>
           <div className="form-group">
@@ -60,6 +62,7 @@ const AuthPage = ({ onLogin, onRegister, loading, authError }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Mật khẩu"
+              autoComplete="current-password"
             />
           </div>
           <button className="btn btn-primary" type="submit" disabled={submitting || loading}>

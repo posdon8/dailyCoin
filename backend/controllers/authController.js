@@ -104,6 +104,7 @@ export const googleCallback = (req, res) => {
   try {
     const user = req.user;
     console.log('[GoogleCallback] req.user:', user);
+    
     if (!user) {
       console.error('[GoogleCallback] No user found in request');
       return res.redirect(`${process.env.FRONTEND_URL}?error=google_auth_failed`);
@@ -112,9 +113,28 @@ export const googleCallback = (req, res) => {
     const token = signToken(user);
     console.log('[GoogleCallback] Token generated:', token ? 'success' : 'failed');
     console.log('[GoogleCallback] Redirecting to:', `${process.env.FRONTEND_URL}?token=${token}`);
+    
+    // Redirect to frontend with token in URL
     res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
   } catch (error) {
     console.error('[GoogleCallback] Error:', error);
     res.redirect(`${process.env.FRONTEND_URL}?error=google_auth_failed`);
+  }
+};
+
+// ================================
+// Logout handler
+// ================================
+export const logout = (req, res) => {
+  try {
+    // Since we're using stateless JWT, logout is mostly client-side
+    // Server-side: invalidate token if needed (optional)
+    console.log('[Logout] User logged out:', req.user?.email);
+    res.status(200).json({ 
+      success: true, 
+      message: 'Đã đăng xuất thành công' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

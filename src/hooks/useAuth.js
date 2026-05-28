@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   loginAPI,
   registerAPI,
+  logoutAPI,
   fetchCurrentUserAPI,
   setAuthToken,
   setStoredUser,
@@ -31,13 +32,11 @@ export const useAuth = () => {
           console.log('[OAuth] Fetching current user profile...');
           const profile = await fetchCurrentUserAPI();
           console.log('[OAuth] User profile loaded:', profile);
-          setUser(profile);
           setStoredUser(profile);
-          // Clean up URL bar
+          setUser(profile);
+          // Clean up URL bar - don't reload to preserve cache and state
           window.history.replaceState({}, document.title, window.location.pathname);
           console.log('[OAuth] Login complete, user set and URL cleaned');
-              window.location.reload();
-
         } catch (err) {
           console.error('[OAuth] Failed to load Google user:', err);
           clearAuthToken();
@@ -109,10 +108,18 @@ export const useAuth = () => {
     }
   };
 
-  const logout = () => {
-    clearAuthToken();
-    setUser(null);
-    setError(null);
+  const logout = async () => {
+    try {
+      setLoading(true);
+      await logoutAPI();
+    } catch (err) {
+      console.error('[Logout] Error:', err);
+    } finally {
+      clearAuthToken();
+      setUser(null);
+      setError(null);
+      setLoading(false);
+    }
   };
 
   return {
