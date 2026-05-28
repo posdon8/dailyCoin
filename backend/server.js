@@ -20,10 +20,31 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allowed origins - including different localhost variations
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5174',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5174',
+      process.env.FRONTEND_URL, // From .env
+    ].filter(Boolean);
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      // Log warning but still allow for development
+      console.warn(`[CORS] Origin not in whitelist: ${origin}`);
+      callback(null, true); // Allow for development flexibility
+    }
+  },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

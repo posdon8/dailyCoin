@@ -97,22 +97,6 @@ const handleRegister = async (name, email, password) => {
   }
 };
 
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
-  const error = params.get('error');
-  
-  if (token) {
-    localStorage.setItem('token', token);
-    window.history.replaceState({}, '', '/');
-    window.location.reload();
-  }
-  
-  if (error) {
-    setNotification({ message: '❌ Đăng nhập Google thất bại', type: 'danger' });
-    window.history.replaceState({}, '', '/');
-  }
-}, []);
 // Load budget khi đổi tháng/năm và khi người dùng đăng nhập
 useEffect(() => {
   if (auth.isAuthenticated) {

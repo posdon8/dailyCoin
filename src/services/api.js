@@ -2,7 +2,7 @@
  * API Service - Quản lý tất cả gọi API
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const AUTH_TOKEN_KEY = 'dailyExpensesAuthToken';
 const USER_STORAGE_KEY = 'dailyExpensesCurrentUser';
 
@@ -93,6 +93,13 @@ export const registerAPI = async (email, password, name = '') => {
 export const fetchCurrentUserAPI = async () => {
   const response = await apiCall('/auth/me');
   return response.data;
+};
+
+export const logoutAPI = async () => {
+  const response = await apiCall('/auth/logout', {
+    method: 'POST',
+  });
+  return response;
 };
 
 /**
