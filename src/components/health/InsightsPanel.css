@@ -1,0 +1,178 @@
+/* InsightsPanel Styles */
+
+.insights-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.insights-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+/* Insights List */
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.insight-card {
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #2196F3;
+  background: #f5f5f5;
+  transition: all 0.3s ease;
+}
+
+.insight-card:hover {
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+  transform: translateX(4px);
+}
+
+.insight-positive {
+  border-left-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.insight-warning {
+  border-left-color: #FF9800;
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.insight-action {
+  border-left-color: #2196F3;
+  background: rgba(33, 150, 243, 0.05);
+}
+
+/* Insight Header */
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.insight-icon {
+  font-size: 20px;
+}
+
+.insight-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.insight-label {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+  text-transform: uppercase;
+}
+
+/* Insight Text */
+.insight-text {
+  margin: 8px 0 0 32px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Insight Metric */
+.insight-metric {
+  display: inline-block;
+  margin: 8px 0 0 32px;
+  font-size: 12px;
+  color: #0066cc;
+  font-weight: 500;
+}
+
+/* No Insights */
+.no-insights {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px 0;
+  margin: 0;
+}
+
+/* Metrics Breakdown */
+.metrics-breakdown {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 24px;
+}
+
+.metrics-breakdown h4 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.metrics-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.metric-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.metric-name {
+  color: #555;
+  font-weight: 500;
+}
+
+.metric-value {
+  color: #999;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .insights-panel {
+    padding: 16px;
+  }
+
+  .insight-text {
+    margin-left: 28px;
+  }
+
+  .insight-metric {
+    margin-left: 28px;
+  }
+}

@@ -8,6 +8,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import BudgetPage from './pages/BudgetPage';
 import WalletPage from './pages/WalletPage';
 import AttachmentPage from './pages/AttachmentPage';
+import HealthScorePage from './pages/HealthScorePage';
 import { useExpenses } from './hooks/useExpensesAPI';
 import { useBudgets } from './hooks/useBudgets';
 import { useWallets } from './hooks/useWallets';
@@ -252,6 +253,7 @@ const handleAddExpense = async (data) => {
             >
               📎 Đính kèm
             </button>
+            <button onClick={() => setCurrentPage('health')}>💰 Financial Health</button>
           </div>
         </div>
       </nav>
@@ -269,6 +271,8 @@ const handleAddExpense = async (data) => {
       loading={loading}
     />
   )}
+  {currentPage === 'health' && <HealthScorePage />}
+
   {currentPage === 'analytics' && <AnalyticsPage expenses={expenses} />}
   {currentPage === 'budget' && (
     <BudgetPage
