@@ -7,6 +7,7 @@ import budgetRoutes from './routes/budgetRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
 import attachmentRoutes from './routes/attachmentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -62,6 +63,7 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/attachments', attachmentRoutes);
+app.use('/api/health', healthRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
