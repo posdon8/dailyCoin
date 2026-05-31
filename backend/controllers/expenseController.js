@@ -57,6 +57,10 @@ export const getExpenseById = async (req, res) => {
 export const createExpense = async (req, res) => {
   try {
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Không xác thực được người dùng' });
+    }
+
     const { amount, category, description, date, walletId, tags, notes } = req.body;
 
     // Validate dữ liệu
@@ -112,10 +116,14 @@ export const createExpense = async (req, res) => {
 export const updateExpense = async (req, res) => {
   try {
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Không xác thực được người dùng' });
+    }
+
     const { amount, category, description, date, walletId, tags, notes } = req.body;
 
     const existingExpense = await Expense.findById(req.params.id);
-    if (!existingExpense || existingExpense.userId !== userId) {
+    if (!existingExpense || String(existingExpense.userId) !== String(userId)) {
       return res.status(404).json({
         success: false,
         message: 'Chi tiêu không tìm thấy',
@@ -189,8 +197,12 @@ export const updateExpense = async (req, res) => {
 export const deleteExpense = async (req, res) => {
   try {
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Không xác thực được người dùng' });
+    }
+
     const expense = await Expense.findById(req.params.id);
-    if (!expense || expense.userId !== userId) {
+    if (!expense || String(expense.userId) !== String(userId)) {
       return res.status(404).json({
         success: false,
         message: 'Chi tiêu không tìm thấy',

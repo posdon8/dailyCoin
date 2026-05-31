@@ -2,17 +2,17 @@
 
 ## 5-Minute Setup
 
-### Step 1: Add OpenAI API Key (1 min)
+### Step 1: Add Gemini API Key (1 min)
 
 **Get your API key:**
-1. Go to https://platform.openai.com/api-keys
-2. Create new secret key
+1. Go to https://makersuite.google.com/app/apikey
+2. Click on "Create API Key"
 3. Copy the key
 
 **Add to `.env`:**
 ```bash
 # backend/.env
-OPENAI_API_KEY=sk-...paste-your-key-here...
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### Step 2: Add Route to App.jsx (2 min)
@@ -180,7 +180,7 @@ New goal: Save $500-600/month → 85+ score in 2 months."
 ### Issue: "500 error when clicking Recalculate"
 **Solution:**
 1. Check backend console for errors
-2. Verify `OPENAI_API_KEY` is set in `.env`
+2. Verify `GEMINI_API_KEY` is set in `.env`
 3. Restart backend: `npm run dev`
 4. Check user has expenses data in database
 
@@ -188,7 +188,7 @@ New goal: Save $500-600/month → 85+ score in 2 months."
 **Solution:**
 1. Check internet connection
 2. Verify API key is valid
-3. Check OpenAI API status: https://status.openai.com
+3. Check Gemini API status: https://makersuite.google.com/app/apikey
 4. Restart both servers
 
 ### Issue: Score not updating after 24h
@@ -235,10 +235,13 @@ const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 // Change to 7 days: 7 * 24 * 60 * 60 * 1000
 ```
 
-### Change AI Model (currently gpt-3.5-turbo):
+### Change AI Model (currently gemini-2.0-flash):
 ```javascript
-// backend/services/openaiService.js, line ~16
-model: 'gpt-4',  // More accurate, 10x more expensive
+// backend/services/geminiService.js, line ~4
+// Available models:
+// - gemini-2.0-flash (faster, recommended)
+// - gemini-1.5-pro (more accurate, slightly slower)
+GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent'
 ```
 
 ---
@@ -252,7 +255,7 @@ model: 'gpt-4',  // More accurate, 10x more expensive
 3. Clear cache: `localStorage.clear()`
 4. Restart servers
 5. Check internet connection
-6. Verify OpenAI API key is valid
+6. Verify Gemini API key is valid
 
 **Still stuck?**
 → Check backend logs: `npm run dev` output

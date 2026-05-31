@@ -1,6 +1,6 @@
+import './config/env.js'; 
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import connectDB from './config/mongodb.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
@@ -11,7 +11,6 @@ import healthRoutes from './routes/healthRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 // Load environment variables
-dotenv.config();
 import passport from './config/passport.js';
 
 // Connect to MongoDB
