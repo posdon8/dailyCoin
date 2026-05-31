@@ -74,6 +74,10 @@ export const upsertBudget = async (req, res) => {
     const { category, limit, month, year, notes } = req.body;
     const userId = req.user?.id;
 
+    if (!userId) {
+      return res.status(401).json({ message: 'Không xác thực được người dùng' });
+    }
+
     if (!category || limit === undefined || !month || !year) {
       return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
     }
@@ -103,10 +107,15 @@ export const upsertBudget = async (req, res) => {
 // ================================
 export const deleteBudget = async (req, res) => {
   try {
-    const budget = await Budget.findByIdAndDelete(req.params.id);
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Không xác thực được người dùng' });
+    }
+
+    const budget = await Budget.findOneAndDelete({ _id: req.params.id, userId });
 
     if (!budget) {
-      return res.status(404).json({ message: 'Không tìm thấy ngân sách' });
+      return res.status(404).json({ message: 'Không tìm thấy ngân sách hoặc bạn không có quyền' });
     }
 
     res.json({ message: 'Xóa ngân sách thành công' });

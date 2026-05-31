@@ -58,6 +58,10 @@ export const createWallet = async (req, res) => {
   try {
     const { name, type, balance, currency, color, icon, description } = req.body;
     const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Không xác thực được người dùng' });
+    }
 
     if (!name || !type) {
       return res.status(400).json({
@@ -158,12 +162,16 @@ export const updateWallet = async (req, res) => {
 export const deleteWallet = async (req, res) => {
   try {
     const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Không xác thực được người dùng' });
+    }
+
     const wallet = await Wallet.findOneAndDelete({ _id: req.params.id, userId });
 
     if (!wallet) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy ví',
+        message: 'Không tìm thấy ví hoặc bạn không có quyền',
       });
     }
 

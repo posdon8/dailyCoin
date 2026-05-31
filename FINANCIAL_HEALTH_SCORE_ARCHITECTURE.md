@@ -33,7 +33,7 @@ Một hệ thống điểm sức khỏe tài chính với AI phân tích, cache 
 │  Controllers:                                           │
 │  ├─ calculateHealthScore()                            │
 │  │  ├─ Fetch expenses + budgets                       │
-│  │  ├─ Call OpenAI API (1 lần/ngày)                  │
+│  │  ├─ Call Gemini API (1 lần/ngày)                 │
 │  │  └─ Save to DB + cache                            │
 │  │                                                     │
 │  ├─ getHealthScore()                                 │
@@ -41,7 +41,7 @@ Một hệ thống điểm sức khỏe tài chính với AI phân tích, cache 
 │  │                                                     │
 │  └─ chatWithAI()                                      │
 │     ├─ Lấy score summary (không raw data)            │
-│     ├─ Send to OpenAI with context                   │
+│     ├─ Send to Gemini with context                   │
 │     └─ Return max 300 tokens                         │
 │                                                         │
 │  Models:                                               │
@@ -170,7 +170,7 @@ backend/
 ├─ routes/
 │  └─ healthRoutes.js       (NEW)
 ├─ services/
-│  ├─ openaiService.js      (NEW - AI API wrapper)
+│  ├─ geminiService.js      (NEW - Gemini API wrapper)
 │  └─ cacheService.js       (NEW - cache management)
 └─ middleware/
    └─ healthCache.js        (NEW - middleware cache)
@@ -383,7 +383,7 @@ const HealthScoreSchema = new Schema({
 ### Phase 1: Backend Setup
 1. ✅ Create HealthScore model
 2. ✅ Create healthController with calculateScore logic
-3. ✅ Create openaiService for API calls
+3. ✅ Create geminiService for API calls
 4. ✅ Setup routes (/calculate, /score, /chat)
 5. ✅ Add authentication middleware
 
@@ -493,7 +493,7 @@ sendToAI({
 Bạn muốn tôi implement:
 1. **Backend trước** - Setup models + APIs?
 2. **Frontend components** - Dashboard + Chat?
-3. **OpenAI integration** - Service + prompts?
+3. **Gemini integration** - Service + prompts?
 4. **Full implementation** - Cả 3 cùng một lúc?
 
 Bắt đầu với cái nào? 🚀

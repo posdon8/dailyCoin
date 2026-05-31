@@ -2,7 +2,7 @@ import HealthScore from '../models/HealthScore.js';
 import Expense from '../models/Expense.js';
 import Budget from '../models/Budget.js';
 import Wallet from '../models/Wallet.js';
-import { generateInsights, chatAboutFinances } from '../services/openaiService.js';
+import { generateInsights, chatAboutFinances } from '../services/geminiService.js';
 
 /**
  * Calculate Financial Health Score (1-100)
@@ -45,14 +45,21 @@ const calculateHealthScore = async (expenses, budgets, wallets) => {
   }
 
   // 2. Savings Rate (20 points)
-  // Calculate based on wallet balance changes
+  // Calculate based on wallet balance
   let totalIncome = 0;
   let savings = 0;
 
   wallets.forEach((wallet) => {
-    totalIncome += wallet.initialBalance;
-    savings += wallet.currentBalance;
+    // Use current balance as both income and savings indicator
+    const balance = wallet.balance || 0;
+    totalIncome += balance;
+    savings += balance;
   });
+
+  // If no wallets, estimate income from total expenses
+  if (totalIncome === 0 && totalExpense > 0) {
+    totalIncome = totalExpense * 1.5; // Assume 1.5x of expenses
+  }
 
   if (totalIncome > 0) {
     const savingsPercent = (savings / totalIncome) * 100;
@@ -161,15 +168,31 @@ export const calculateScore = async (req, res) => {
     // Calculate score
     const scoreData = await calculateHealthScore(expenses, budgets, wallets);
 
+    // Validate metrics to prevent NaN values
+    const validatedMetrics = {
+      totalExpense: isNaN(scoreData.metrics.totalExpense) ? 0 : scoreData.metrics.totalExpense,
+      budgetLimit: isNaN(scoreData.metrics.budgetLimit) ? 0 : scoreData.metrics.budgetLimit,
+      savings: isNaN(scoreData.metrics.savings) ? 0 : scoreData.metrics.savings,
+      income: isNaN(scoreData.metrics.income) ? 0 : scoreData.metrics.income,
+      categoryCount: scoreData.metrics.categoryCount || 0,
+      maxCategoryPercent: isNaN(scoreData.metrics.maxCategoryPercent) ? 0 : scoreData.metrics.maxCategoryPercent,
+      budgetAdherencePercent: isNaN(scoreData.metrics.budgetAdherencePercent) ? 0 : scoreData.metrics.budgetAdherencePercent,
+      monthlyTrend: isNaN(scoreData.metrics.monthlyTrend) ? 0 : scoreData.metrics.monthlyTrend,
+    };
+
+    console.log('[HealthScore] Validated metrics:', validatedMetrics);
+
     // Generate AI insights
     console.log('[HealthScore] Generating AI insights...');
-    const insights = await generateInsights(scoreData);
+    const insights = await generateInsights({ ...scoreData, metrics: validatedMetrics });
 
     // Save to database
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h cache
     const healthScore = await HealthScore.create({
       userId,
-      ...scoreData,
+      score: scoreData.score,
+      breakdown: scoreData.breakdown,
+      metrics: validatedMetrics,
       insights,
       expiresAt,
       metadata: {
