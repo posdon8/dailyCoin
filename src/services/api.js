@@ -477,3 +477,50 @@ export const fetchAttachments = async () => {
   const response = await apiCall('/attachments');
   return response.data || [];
 };
+
+// ================================
+// Generic API Methods
+// ================================
+
+/**
+ * Generic GET request
+ */
+export const get = async (endpoint) => {
+  return await apiCall(endpoint);
+};
+
+/**
+ * Generic POST request
+ */
+export const post = async (endpoint, data) => {
+  return await apiCall(endpoint, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Generic PUT request
+ */
+export const put = async (endpoint, data) => {
+  return await apiCall(endpoint, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Generic DELETE request
+ */
+export const del = async (endpoint) => {
+  return await apiCall(endpoint, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Alias for delete (since delete is reserved keyword)
+ */
+export const deleteAPI = async (endpoint) => {
+  return await del(endpoint);
+};

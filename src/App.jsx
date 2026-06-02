@@ -9,6 +9,7 @@ import BudgetPage from './pages/BudgetPage';
 import WalletPage from './pages/WalletPage';
 import AttachmentPage from './pages/AttachmentPage';
 import HealthScorePage from './pages/HealthScorePage';
+import DebtPage from './pages/DebtPage';
 import { useExpenses } from './hooks/useExpensesAPI';
 import { useBudgets } from './hooks/useBudgets';
 import { useWallets } from './hooks/useWallets';
@@ -248,6 +249,12 @@ const handleAddExpense = async (data) => {
               💰 Ví tiền
             </button>
             <button
+              className={`nav-tab ${currentPage === 'debt' ? 'active' : ''}`}
+              onClick={() => navigateTo('debt')}
+            >
+              💳 Nợ
+            </button>
+            <button
               className={`nav-tab ${currentPage === 'attachments' ? 'active' : ''}`}
               onClick={() => navigateTo('attachments')}
             >
@@ -304,6 +311,9 @@ const handleAddExpense = async (data) => {
       onUpdateWallet={updateWallet}
       onDeleteWallet={deleteWallet}
     />
+  )}
+  {currentPage === 'debt' && (
+    <DebtPage />
   )}
   {currentPage === 'attachments' && (
     <AttachmentPage
