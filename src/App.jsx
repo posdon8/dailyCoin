@@ -10,10 +10,13 @@ import WalletPage from './pages/WalletPage';
 import AttachmentPage from './pages/AttachmentPage';
 import HealthScorePage from './pages/HealthScorePage';
 import DebtPage from './pages/DebtPage';
+import GoalPage from './pages/GoalPage';
+import CalendarPage from './pages/CalendarPage';
 import { useExpenses } from './hooks/useExpensesAPI';
 import { useBudgets } from './hooks/useBudgets';
 import { useWallets } from './hooks/useWallets';
 import { useAttachments } from './hooks/useAttachments';
+import { useGoals } from './hooks/useGoals';
 import { useAuth } from './hooks/useAuth';
 import AuthPage from './pages/AuthPage';
 import { MESSAGES } from './utils/constants';
@@ -79,6 +82,17 @@ const {
   getAttachmentsByExpense,
 } = useAttachments();
 
+const {
+  goals,
+  stats: goalStats,
+  loading: goalsLoading,
+  loadGoals,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+  addAmount,
+} = useGoals(auth.isAuthenticated);
+
 const handleLogin = async (email, password) => {
   try {
     await auth.login(email, password);
@@ -123,7 +137,7 @@ useEffect(() => {
       }
     }
   }, [budgetSummary]);
-
+  
 if (!auth.isAuthenticated) {
   return (
     <div className="app">
@@ -222,43 +236,55 @@ const handleAddExpense = async (data) => {
               className={`nav-tab ${currentPage === 'home' ? 'active' : ''}`}
               onClick={() => navigateTo('home')}
             >
-              📊 Tổng quan
+               Tổng quan
             </button>
             <button
               className={`nav-tab ${currentPage === 'expenses' ? 'active' : ''}`}
               onClick={() => navigateTo('expenses')}
             >
-              📝 Chi tiêu
+               Chi tiêu
             </button>
             <button
               className={`nav-tab ${currentPage === 'analytics' ? 'active' : ''}`}
               onClick={() => navigateTo('analytics')}
             >
-              📈 Phân tích
+               Phân tích
             </button>
             <button
               className={`nav-tab ${currentPage === 'budget' ? 'active' : ''}`}
               onClick={() => navigateTo('budget')}
             >
-              📊 Ngân sách
+               Ngân sách
             </button>
             <button
               className={`nav-tab ${currentPage === 'wallet' ? 'active' : ''}`}
               onClick={() => navigateTo('wallet')}
             >
-              💰 Ví tiền
+               Ví tiền
             </button>
             <button
               className={`nav-tab ${currentPage === 'debt' ? 'active' : ''}`}
               onClick={() => navigateTo('debt')}
             >
-              💳 Nợ
+               Nợ
+            </button>
+            <button
+              className={`nav-tab ${currentPage === 'goals' ? 'active' : ''}`}
+              onClick={() => navigateTo('goals')}
+            >
+               Mục tiêu
+            </button>
+            <button
+              className={`nav-tab ${currentPage === 'calendar' ? 'active' : ''}`}
+              onClick={() => navigateTo('calendar')}
+            >
+               Lịch
             </button>
             <button
               className={`nav-tab ${currentPage === 'attachments' ? 'active' : ''}`}
               onClick={() => navigateTo('attachments')}
             >
-              📎 Đính kèm
+               Đính kèm
             </button>
             <button onClick={() => setCurrentPage('health')}>💰 Financial Health</button>
           </div>
@@ -314,6 +340,25 @@ const handleAddExpense = async (data) => {
   )}
   {currentPage === 'debt' && (
     <DebtPage />
+  )}
+  {currentPage === 'goals' && (
+    <GoalPage
+      goals={goals}
+      onCreateGoal={createGoal}
+      onUpdateGoal={updateGoal}
+      onDeleteGoal={deleteGoal}
+      onAddAmount={addAmount}
+      stats={goalStats}
+      loading={goalsLoading}
+    />
+  )}
+  {currentPage === 'calendar' && (
+    <CalendarPage
+      expenses={expenses}
+      onUpdateExpense={handleUpdateExpense}
+      onDeleteExpense={handleDeleteExpense}
+      loading={loading}
+    />
   )}
   {currentPage === 'attachments' && (
     <AttachmentPage
